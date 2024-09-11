@@ -1,5 +1,7 @@
 # StreamClassifier
-Takes habitat/object input with geometry (streams in line format) and classifies (naturality assesment) them to stream or ditch like features. Classification is done with Random Forest and Neural Networks. This is used in Part2 to divide a raster mask into drained and natural parts.
+Takes habitat/object input with geometry (streams in line format) and classifies (naturality assesment) them to stream or ditch like features. Classification is done with Random Forest and Neural Networks. 
+
+These are used in Part2 to divide a raster mask into drained and natural parts.
 
 
 ## General pipeline
@@ -16,15 +18,15 @@ Part2
 - Class separation
 - Buffering
 - Rasterization
-- Addition of additional data, fields and roads as ditches
+- Addition of additional data, e.g. fields and roads as ditches
 - Mask comparison and addition
 - File compression
 
 ## Inputs
 - NLS Topographic database (https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/product-descriptions/topographic-database) “kohdeluokka” 36311 (stream, under 2m) and “kohdeluokka” 36312 (stream 2-5m).
 - Training material, where streams are classified manually (or in some other valid method) into “natural streams” and “ditches”.
-- Additional data, e.g. fields and roads as ditches.
-- Background mask to divide into drained/natural parts, petlands and mineral soils of Finland.
+- Additional data, e.g. fields and roads as ditches, peat fields, peat production areas
+- Background mask to divide into drained/natural parts, peatlands and mineral soils of Finland.
 
 ## Outputs
 - Input features with added variables used in classification, including length, simplified length, ratio of these lengths, number of vertices, sinuosity, sum and mean distance to neighbor line centroids, max and mean distance in vertices, depth to water raster values, slope raster values, soil raster values and predicted class. predicted class in scale 0.00 – 1.00, where 1 is natural stream like and 0 ditch like.
@@ -89,7 +91,6 @@ This resulted into input vector geometries (streams) with added variables and pr
 
 #### Divide into x classes
 - stream, ditch 
-- combine them so that the emphasized option overwrites the other if overlapping
 - if one wants a more streamlined categorized inspection instead of a continuous probabilistic one 
 - e.g. 
 stream = df[
@@ -98,30 +99,33 @@ stream = df[
     (df['mean_distance_seq'] < 10) &
     ((df['StreamProbRF'] > 0.6) | (df['StreamProbNN'] > 0.6))]
 
-
 #### Buffer creation
 50 meters was assumed to be the impact area of a ditch, so this 50-meter buffered line geometry can be considered the drained area.
 
 #### Rasterization
 If the mask is a raster file, then the vector geometries need to be rasterized.
 
+#### Combine classes
+stack classes so that the emphasized option overwrites the other if overlapping, e.g. if drained and natural impact area overlap, set raster value to drained
+
+#### Correct values
+additional data can provide more insight about real life situations, e.g. subsurface streams on peatland are mostly natural, so when impact area overlaps subsurface stream impact area, set raster value to natural
+
 #### Addition of 50m buffered fields and roads as ditches
 Fields and roads are most commonly ditched, so they are defined as drained area and added to the stream raster. Stream_raster + FieldRoad_raster
 
 #### Mask analysis
-The raster mask with peatlands and mineral soils was further divided into drained and natural parts by doing a simple addition stream_raster + mask_raster.  Both rasters must have the same properties (resolution, extent, crs…), if in your case not, resample first.
+The raster mask with peatlands and mineral soils was further divided into drained and natural parts by doing a simple addition stream_raster + mask_raster.  Both rasters must have the same properties (resolution, extent, crs…), if in your case not, resample first. Peat fields and peat production areas were added as standalone classes without further drained/natural division
 
-The ditch/stream raster had two categorical values (multiplied by 10), 20 = peatland, 10 = mineral soil. The stream raster had values 3 = drained area, 4 = natural stream, thus the possible sum outcomes for stream raster + mask were following:
+The ditch/stream raster had two categorical values (multiplied by 10), 20 = peatland, 10 = mineral soil. The stream raster had values 1 = drained area, 2 = natural stream, thus the possible sum outcomes for stream raster + mask were following:
 - 0 = no data
-- 3 = drained area not intersecting mask 
-- 4 = natural stream not intersecting mask 
-- 10 = mineral soil not intersecting drained/stream area 
-- 13 = mineral soil intersecting drained area 
-- 14 = mineral soil intersecting stream area 
-- 20 = peatland not intersecting drained/stream area 
-- 23 = peatland intersecting drained area 
-- 24 = peatland intersecting stream area 
+- 10 = natural mineral soil either not intersecting drained/stream area or only intersecting natural streams
+- 11 = mineral soil intersecting drained area 
+- 20 = peatland either not intersecting drained/stream area or intersecting only natural streams
+- 21 = peatland intersecting drained area 
+- 22 = peat field
+- 23 = peat production area 
 
 #### Compress end product for storage
-Raster files can be quite large, so compression for storage is often recommended. LZW compression with SPARSE_OK was utilized.
+Raster files can be quite large, so compression for storage is often recommended. Use LZW compression with SPARSE_OK if not already done so
 
