@@ -129,3 +129,41 @@ The ditch/stream raster had two categorical values (multiplied by 10), 20 = peat
 #### Compress end product for storage
 Raster files can be quite large, so compression for storage is often recommended. Use LZW compression with SPARSE_OK if not already done so
 
+## Variable description
+| Variable | Description |
+|----------|----------|
+|length|Original line length|
+|length_simplified|Length of line that is simplified with tolerance 10m|
+|length_ratio|length/length_simplified|
+|num_vertices|Number of vertices|
+|max_distance|Maximum distance between any of the vertices. If the line is straight, then its the distance between vertice1 and vertice x|
+|mean_distance|Mean vertice distance|
+|sinuosity|Division of the length of the line by the Euclidean distance between the start and end points of the lineline. Equation: length / line.boundary.geoms[0].distance(line.boundary.geoms[1])|
+|Neighbor_DistanceSum|Sum of the distances to the closest 20 line centroids|
+|Neighbor_DistanceMean|Mean of the centroid distances|
+|DTW1ha|Depth To Water 1 ha raster values sampled from each vertex|
+|DTW1ha_mean|Mean of the DTW values|
+|DTW1ha_median|Median of the DTW values|
+|slope|Slope raster values sampled from each vertex|
+|slope_mean|Slope of the DTW values|
+|slope_median|Slope of the DTW values|
+|soil|Soil raster values sampled from each vertex|
+|soil_surface|Most common soil_surface value from the sampled raster values|
+|soil_base|Most common soil_base value from the sampled raster values|
+|kohdekoodi|Not used|
+|geometry|Geometry column|
+|ref_class|reference class if intersecting, 0 ditch, 1 stream|
+|StreamProbRF_gini100|stream probability, Random Forest, n_estimators=100,criterion='gini'. 0 ditch 1 stream|
+|StreamProbNN_BinCrossEntr_Adam|stream probability, Neural network. model.compile(loss="binary_crossentropy", optimizer="adam", metrics="accuracy")|
+|predicted_class|Mean of StreamProbRF_gini100 and StreamProbNN_BinCrossEntr_Adam|
+|Year|Origin of the line. Only 2009 and 2014 lines that are not intersecting 2024 version|
+|min_distance_seq|Minimum distance between two sequential vertices|
+|max_distance_seq|Maximum distance between two sequential vertices|
+|mean_distance_seq|Mean distance between two sequential vertices|
+|stdev_distance_seq|Standard deviation of distance between two sequential vertices|
+|StreamProbRF|stream probability, Random Forest, n_estimators=100,criterion='gini'. 0 ditch 1 stream|
+|StreamProbNN|stream probability, Neural network. model.compile(loss="binary_crossentropy", optimizer="adam", metrics="accuracy")|
+|predicted_class_mean|Mean of StreamProbRF and StreamProbNN|
+|unique_id|Unique id|
+|streamfilter|1 if condition true, 0 if false. "num_vertices"  >  6 AND "sinuosity" > 1.02 AND "mean_distance_seq" < 10 AND ("StreamProbRF" > 0.6 OR "StreamProbNN" > 0.6)|
+
