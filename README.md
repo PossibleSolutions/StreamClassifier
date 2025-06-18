@@ -3,6 +3,7 @@ Takes habitat/object input with geometry (streams in line format) and classifies
 
 These are used in Part2 to divide a raster mask into drained and natural parts.
 
+Part3 is about implementation of manual corrections. Part2 output was visually validated and false classes were corrected utlizing correction polygons made during this visual inspection
 
 ## General pipeline
 Part1
@@ -22,6 +23,14 @@ Part2
 - Mask comparison and addition
 - File compression
 
+
+Part3
+- Merge and rasterize input correction polygons
+- Change raster cell values based on these corrections
+- Remove potentially unwanted classes
+- Sieve so that the amount of isolated pixels is minimized
+
+  
 ## Inputs
 - NLS Topographic database (https://www.maanmittauslaitos.fi/en/maps-and-spatial-data/datasets-and-interfaces/product-descriptions/topographic-database) “kohdeluokka” 36311 (stream, under 2m) and “kohdeluokka” 36312 (stream 2-5m).
 - Training material, where streams are classified manually (or in some other valid method) into “natural streams” and “ditches”.
@@ -118,12 +127,10 @@ Fields and roads are most commonly ditched, so they are defined as drained area 
 The raster mask with peatlands and mineral soils was further divided into drained and natural parts by doing a simple addition stream_raster + mask_raster.  Both rasters must have the same properties (resolution, extent, crs…), if in your case not, resample first. Peat fields and peat production areas were added as standalone classes without further drained/natural division
 
 The ditch/stream raster had two categorical values (multiplied by 10), 20 = peatland, 10 = mineral soil. The stream raster had values 1 = drained area, 2 = natural stream, thus the possible sum outcomes for stream raster + mask were following:
-- 0 = no data
 - 10 = natural mineral soil either not intersecting drained/stream area or only intersecting natural streams
 - 11 = mineral soil intersecting drained area 
 - 20 = peatland either not intersecting drained/stream area or intersecting only natural streams
 - 21 = peatland intersecting drained area 
-- 22 = peat field
 - 23 = peat production area 
 
 #### Compress end product for storage
