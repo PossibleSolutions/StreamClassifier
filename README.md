@@ -6,7 +6,7 @@ These are used in Part2 to divide a raster mask into drained and natural parts.
 Part3 is about implementation of manual corrections. Part2 output was visually validated and false classes were corrected utlizing correction polygons made during this visual inspection
 
 ## General pipeline
-Part1
+Part1 (StreamClassification_pipeline_Github)
 - Reading input, dissolving it by group and subsetting it into smaller sets for processing
 - Creation of classification context
 - Application of machine learning methods to classify the data
@@ -15,8 +15,8 @@ Part1
 - Assessment of variable significance
 - Adding reference values from previous versions
   
-Part2 
-- Class separation
+Part2 (StreamClassification_MaskComparison_Github)
+- Categorical class separation
 - Buffering
 - Rasterization
 - Addition of additional data, e.g. fields and roads as ditches
@@ -24,7 +24,7 @@ Part2
 - File compression
 
 
-Part3
+Part3 (StreamClassification_ManualCorrections_Github)
 - Merge and rasterize input correction polygons
 - Change raster cell values based on these corrections
 - Remove potentially unwanted classes
